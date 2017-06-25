@@ -27,62 +27,76 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Driver {
+    private static List<Restaurant> restaurants;
+    private static List<Choices> choicesList;
+
     private Driver(){
 
     }
 
     public static void main(String[] args){
         FileReader fileReader = null;
-        String line;
-        String[] data;
-        String restaurantName;
-        String person;
-        String like;
-        List<String> likes = new ArrayList();
-        List<Choices> choicesList = new ArrayList();
-        List<Restaurant> restaurants = new ArrayList();
+        ObjectMapper mapper = null;
 
         try {
             fileReader = new FileReader(args[0]);
+            Driver.parseFile(fileReader);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+        mapper = new ObjectMapper();
         try {
+            mapper.writeValue(new File("food.json"), Driver.restaurants);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+    }
+
+    private static void parseFile(FileReader fileReader) throws IOException{
+        String line;
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        String[] restaurantLine;
+        String restaurantName;
+
+        Driver.choicesList = new ArrayList();
+        Driver.restaurants = new ArrayList();
+
+        line = bufferedReader.readLine();
+        while (line != null) {
+            restaurantLine = line.split(",");
+            restaurantName = restaurantLine[0];
             line = bufferedReader.readLine();
-            while (line != null){
-                data = line.split(",");
-                restaurantName = data[0];
-                line = bufferedReader.readLine();
-                while (!lineIsBlank(line)) {
-                    data = line.split(",");
-                    person = data[0];
-                    for (int i = 1; i < data.length; i++) {
-                        like = data[i];
-                        if (!"".equals(like)) {
-                            likes.add(like);
-                        }
-                    }
-                    choicesList.add(new Choices(person, likes));
-                    likes = new ArrayList();
-                    line = bufferedReader.readLine();
-                }
-                restaurants.add(new Restaurant(restaurantName, choicesList));
-                choicesList = new ArrayList();
+            while (!lineIsBlank(line)) {
+                Driver.readPeople(line);
                 line = bufferedReader.readLine();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
+            Driver.restaurants.add(new Restaurant(restaurantName, choicesList));
+            Driver.choicesList = new ArrayList();
+            line = bufferedReader.readLine();
         }
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            mapper.writeValue(new File("food.json"), restaurants);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
+    }
+
+    private static void readPeople(String line){
+        String person;
+        String like;
+        String[] data;
+        List<String> likes = new ArrayList();
+
+        data = line.split(",");
+        person = data[0];
+        for (int i = 1; i < data.length; i++) {
+            like = data[i];
+            if (!"".equals(like)) {
+                likes.add(like);
+            }
         }
+        Driver.choicesList.add(new Choices(person, likes));
     }
 
     private static boolean lineIsBlank(String line){
