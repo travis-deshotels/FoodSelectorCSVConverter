@@ -36,16 +36,14 @@ public class Driver {
 
     public static void main(String[] args){
         FileReader fileReader = null;
-        ObjectMapper mapper = null;
+        ObjectMapper mapper;
 
         try {
             fileReader = new FileReader(args[0]);
             Driver.parseFile(fileReader);
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e | IOException e) {
             e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
+	    //log
             return;
         }
 
@@ -54,6 +52,7 @@ public class Driver {
             mapper.writeValue(new File("food.json"), Driver.restaurants);
         } catch (IOException e) {
             e.printStackTrace();
+	    //log
             return;
         }
     }
